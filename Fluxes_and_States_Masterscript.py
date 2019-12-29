@@ -83,7 +83,7 @@ def data_path(yearnumber,a):
 #%% Code (no need to look at this for running)
 
 # The model level as downloaded from ERA-Interim are hard-defined within this code. So it has to be changed if other model levels are downloaded
-def getW(latnrs,lonnrs,final_time,a,yearnumber,begin_time,count_time,
+def getW(latnrs,lonnrs,final_time,a,begin_time,count_time,
     density_water,latitude,longitude,g,A_gridcell,boundary):
     
     if a != final_time: # not the end of the year
@@ -166,7 +166,7 @@ def getW(latnrs,lonnrs,final_time,a,yearnumber,begin_time,count_time,
     return cw, W_top, W_down
 
 #%% Code
-def getwind(latnrs,lonnrs,final_time,a,yearnumber,begin_time,count_time):
+def getwind(latnrs,lonnrs,final_time,a,begin_time,count_time):
     # u stands for wind in zonal direction = west-east
     # v stands for wind in meridional direction = south-north 
     if a != final_time: # not the end of the year
@@ -194,7 +194,7 @@ def getwind(latnrs,lonnrs,final_time,a,yearnumber,begin_time,count_time):
 
 
 #%% Code
-def getFa(latnrs,lonnrs,boundary,cw,U,V,count_time,begin_time,yearnumber,a,final_time):
+def getFa(latnrs,lonnrs,boundary,cw,U,V,count_time,begin_time,a,final_time):
     
     if a != final_time: #not the end of the year
         
@@ -258,7 +258,7 @@ def getFa(latnrs,lonnrs,boundary,cw,U,V,count_time,begin_time,yearnumber,a,final
 
 
 #%% Code
-def getEP(latnrs,lonnrs,yearnumber,begin_time,count_time,latitude,longitude,A_gridcell):
+def getEP(latnrs,lonnrs,begin_time,count_time,latitude,longitude,A_gridcell):
     
     #(accumulated after the forecast at 00.00 and 12.00 by steps of 3 hours in time
     evaporation = Dataset(datapath[22], mode = 'r').variables['e'][begin_time*2:(begin_time*2+count_time*2),latnrs,lonnrs] #m
@@ -574,16 +574,16 @@ for yearnumber in years:
             begin_time = a*4 # first index to get data from (netcdf is zero based) (leave at a*16)
             
             #1 integrate specific humidity to get the (total) column water (vapor)
-            cw,W_top,W_down = getW(latnrs,lonnrs,final_time,a,yearnumber,begin_time,count_time,density_water,latitude,longitude,g,A_gridcell,boundary)
+            cw,W_top,W_down = getW(latnrs,lonnrs,final_time,a,begin_time,count_time,density_water,latitude,longitude,g,A_gridcell,boundary)
             
             #2 wind in between pressure levels
-            U,V = getwind(latnrs,lonnrs,final_time,a,yearnumber,begin_time,count_time)
+            U,V = getwind(latnrs,lonnrs,final_time,a,begin_time,count_time)
             
             #3 calculate horizontal moisture fluxes
-            Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down = getFa(latnrs,lonnrs,boundary,cw,U,V,count_time,begin_time,yearnumber,a,final_time)
+            Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down = getFa(latnrs,lonnrs,boundary,cw,U,V,count_time,begin_time,a,final_time)
             
             #4 evaporation and precipitation
-            E,P = getEP(latnrs,lonnrs,yearnumber,begin_time,count_time,latitude,longitude,A_gridcell)
+            E,P = getEP(latnrs,lonnrs,begin_time,count_time,latitude,longitude,A_gridcell)
             
             #5 put data on a smaller time step
             Fa_E_top_1,Fa_N_top_1,Fa_E_down_1,Fa_N_down_1,E,P,W_top,W_down = getrefined(Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,W_top,W_down,E,P,divt,count_time,latitude,longitude)
