@@ -33,11 +33,12 @@ def getconstants(latnrs,lonnrs,lake_mask,invariant_data): # def getconstants in 
     gridcell = np.abs(longitude[1] - longitude[0]) # [degrees] grid cell size
     
     # new area size calculation:
-    lat_n_bound = np.minimum(90.0 , latitude + 0.5*gridcell)
-    lat_s_bound = np.maximum(-90.0 , latitude - 0.5*gridcell)
+    #lat_n_bound = np.minimum(90.0 , latitude + 0.5*gridcell)
+    #lat_s_bound = np.maximum(-90.0 , latitude - 0.5*gridcell)
     
-    A_gridcell = np.zeros([len(latitude),1])
-    A_gridcell[:,0] = (np.pi/180.0)*Erad**2 * abs( np.sin(lat_s_bound*np.pi/180.0) - np.sin(lat_n_bound*np.pi/180.0) ) * gridcell
+    #A_gridcell = np.zeros([len(latitude),1])
+    #A_gridcell[:,0] = (np.pi/180.0)*Erad**2 * abs( np.sin(lat_s_bound*np.pi/180.0) - np.sin(lat_n_bound*np.pi/180.0) ) * gridcell
+    A_gridcell[i] = (gridcell * dg) * (gridcell * np.cos(latitude * np.pi / 180.0) * dg) # [m2] area size of grid cell
 
 # old area size calculation    
 #    A_gridcell = np.vstack(np.zeros((len(latitude))))
