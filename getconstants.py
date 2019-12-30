@@ -4,9 +4,10 @@ Created on Tue Jun 21 12:38:45 2016
 
 @author: Ent00002
 """
+#%%
 import numpy as np
 from netCDF4 import Dataset
-
+#%%
 def getconstants(latnrs,lonnrs,lake_mask,invariant_data): # def getconstants in Python is the same as function in MATLAB. 
     
     # load the latitude and longitude from the invariants file
