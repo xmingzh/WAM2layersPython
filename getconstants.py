@@ -7,19 +7,25 @@ Created on Tue Jun 21 12:38:45 2016
 #%%
 import numpy as np
 from netCDF4 import Dataset
+from math import radians, cos, sin, acos, sqrt
 #%%
-def getconstants(latnrs,lonnrs,lake_mask,invariant_data): # def getconstants in Python is the same as function in MATLAB. 
+# Function to estimate the distance of two points, unit: m
+def great_circle(lon1, lat1, lon2, lat2):
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    Erad = 6.371e6 # [m] Earth radius
+    return Erad * (
+        acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon1 - lon2))
+    )
+
+def getconstants(latnrs,lonnrs,invariant_data): # def getconstants in Python is the same as function in MATLAB. 
     
     # load the latitude and longitude from the invariants file
     latitude = Dataset(invariant_data, mode = 'r').variables['latitude'][latnrs] # [degrees north]
     longitude = Dataset(invariant_data, mode = 'r').variables['longitude'][lonnrs] # [degrees east]
 
     # Create land-sea-mask (in this model lakes are considered part of the land)
-    lsm = np.squeeze(Dataset(invariant_data, mode = 'r').variables['lsm'][0,latnrs,lonnrs]) # 0 = sea, 1 = land
-    
-    for n in range(len(lake_mask[:,0])):
-        lsm[lake_mask[n,0],lake_mask[n,1]] = 1
-
+     # 0 = sea, 1 = land
+    lsm=np.loadtxt('Landseamask.csv',delimiter=',')    
     lsm[0,:] = 0 # the northern boundary is always oceanic = 0
     lsm[-1,:] = 0 # the southern boundary is always oceanic = 0
     
@@ -28,31 +34,43 @@ def getconstants(latnrs,lonnrs,lake_mask,invariant_data): # def getconstants in 
     density_water = 1000 # [kg/m3]
     dg = 111089.56 # [m] length of 1 degree latitude
     timestep = 6*3600 # [s] timestep in the ERA-interim archive (watch out! P & E have 3 hour timestep)
-    Erad = 6.371e6 # [m] Earth radius
-    
+         
     # Semiconstants
     gridcell = np.abs(longitude[1] - longitude[0]) # [degrees] grid cell size
-    
-    # new area size calculation:
-    #lat_n_bound = np.minimum(90.0 , latitude + 0.5*gridcell)
-    #lat_s_bound = np.maximum(-90.0 , latitude - 0.5*gridcell)
-    
-    A_gridcell = np.zeros([len(latitude),1])
-    #A_gridcell[:,0] = (np.pi/180.0)*Erad**2 * abs( np.sin(lat_s_bound*np.pi/180.0) - np.sin(lat_n_bound*np.pi/180.0) ) * gridcell
-    A_gridcell[:,0] = (gridcell * dg) * (gridcell * np.cos(latitude * np.pi / 180.0) * dg) # [m2] area size of grid cell
 
-# old area size calculation    
-#    A_gridcell = np.vstack(np.zeros((len(latitude))))
-#    for i in range(len(latitude)):
-#        if (latitude[i] != 90 and latitude[i] != -90):
-#            A_gridcell[i] = (gridcell * dg) * (gridcell * np.cos(latitude[i] * np.pi / 180.0) * dg) # [m2] area size of grid cell
-#        elif latitude[i] == 90:
-#            A_gridcell[i] = (0.5*gridcell * dg) * (gridcell * np.cos( (latitude[i]-0.25*gridcell) * np.pi / 180.0) * dg)
-#        elif latitude[i] == -90:
-#            A_gridcell[i] = (0.5*gridcell * dg) * (gridcell * np.cos( (latitude[i]+0.25*gridcell) * np.pi / 180.0) * dg)
+    # Area size calculation 
+    A_gridcell = np.vstack(np.zeros((len(latitude))))
+    lon_w=1
+    lon_e=lon_w+gridcell
+    l_ew=gridcell * dg
+    for i in range(len(latitude)):   
+       if (latitude[i] != 90 and latitude[i] != -90):
+           lat_n=latitude[i]+gridcell / 2.0
+           lat_s=latitude[i]-gridcell / 2.0
+           l_n=great_circle(lon_w, lat_n, lon_e, lat_n) # [m] length northern boundary of a cell
+           l_s=great_circle(lon_w, lat_s, lon_w, lat_s) # [m] length southern boundary of a cell
+           l_diagonal=great_circle(lon_w, lat_s, lon_e, lat_n)
+           # estimate the area of the gridcell as two triangles, and the area of 
+           # triangle is estimated based on Heron's formula   
+           p1=0.5*(l_n+l_ew+l_diagonal)
+           p2=0.5*(l_s+l_ew+l_diagonal)
+           # [m2] area size of grid cell
+           A_gridcell[i] = sqrt(p1*(p1-l_n)*(p1-l_ew)*(p1-l_diagonal))+sqrt(p2*(p2-l_s)*(p2-l_ew)*(p2-l_diagonal))            
+       elif latitude[i] == 90:
+           lat_s=latitude[i]-gridcell / 2.0
+           l_s=great_circle(lon_w, lat_s, lon_w, lat_s)
+           p1=0.5*(l_s+2*l_ew)
+           A_gridcell[i] = sqrt(p1*(p1-l_s)*(p1-l_ew)*(p1-l_ew))
+       elif latitude[i] == -90:
+           lat_n=latitude[i]+gridcell / 2.0
+           l_n=great_circle(lon_w, lat_n, lon_w, lat_n)
+           p1=0.5*(l_n+2*l_ew)
+           A_gridcell[i] = sqrt(p1*(p1-l_n)*(p1-l_ew)*(p1-l_ew))
     
-    L_N_gridcell = gridcell * np.cos((latitude + gridcell / 2.0) * np.pi / 180.0) * dg # [m] length northern boundary of a cell
-    L_S_gridcell = gridcell * np.cos((latitude - gridcell / 2.0) * np.pi / 180.0) * dg # [m] length southern boundary of a cell
+    lat_ns=latitude + gridcell / 2.0
+    lat_ss=latitude - gridcell / 2.0
+    L_N_gridcell = great_circle(lon_w,lat_ns, lon_e, lat_ns) # [m] length northern boundary of a cell
+    L_S_gridcell = great_circle(lon_w,lat_ss, lon_e, lat_ss) # [m] length southern boundary of a cell
     L_EW_gridcell = gridcell * dg # [m] length eastern/western boundary of a cell 
-    
+        
     return latitude , longitude , lsm , g , density_water , timestep , A_gridcell , L_N_gridcell , L_S_gridcell , L_EW_gridcell , gridcell

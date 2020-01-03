@@ -15,7 +15,7 @@ from timeit import default_timer as timer
 import os
 
 #%%BEGIN OF INPUT (FILL THIS IN)
-years = np.arange(2010,2011) #fill in the years
+years = np.arange(1979,1979) #fill in the years
 yearpart = np.arange(0,364) # for a full (leap)year fill in np.arange(0,366)
 boundary = 8 # with 8 the vertical separation is at 812.83 hPa for surface pressure = 1031.25 hPa, which corresponds to k=47 (ERA-Interim)
 divt = 24 # division of the timestep, 24 means a calculation timestep of 6/24 = 0.25 hours (numerical stability purposes)
@@ -35,7 +35,7 @@ lake_mask = np.transpose(np.vstack((lake_mask_1,lake_mask_2))) #recreate the arr
 #END OF INPUT
 
 #%% Datapaths (FILL THIS IN)
-invariant_data = 'Interim_data/full/invariants.nc' #invariants
+invariant_data = 'D:\Github\WAM2layersPython\Download_ERA5\landseamask.nc' #invariants
 interdata_folder = r'C:\Users\bec\Desktop\WAM2\interdata'
 input_folder = r'C:\Users\bec\Desktop\WAM2'
 
@@ -248,10 +248,10 @@ def getFa(latnrs,lonnrs,boundary,cw,U,V,count_time,begin_time,a,final_time):
     Fa_N_top = corr_N * Fa_N_top_uncorr #kg*m-1*s-1
     
     # make the fluxes during the timestep
-    Fa_E_down = 0.5*(Fa_E_down[0:-1,:,:]+Fa_E_down[1:,:,:]);
-    Fa_N_down = 0.5*(Fa_N_down[0:-1,:,:]+Fa_N_down[1:,:,:]);
-    Fa_E_top = 0.5*(Fa_E_top[0:-1,:,:]+Fa_E_top[1:,:,:]);
-    Fa_N_top = 0.5*(Fa_N_top[0:-1,:,:]+Fa_N_top[1:,:,:]);
+    Fa_E_down = 0.5*(Fa_E_down[0:-1,:,:]+Fa_E_down[1:,:,:])
+    Fa_N_down = 0.5*(Fa_N_down[0:-1,:,:]+Fa_N_down[1:,:,:])
+    Fa_E_top = 0.5*(Fa_E_top[0:-1,:,:]+Fa_E_top[1:,:,:])
+    Fa_N_top = 0.5*(Fa_N_top[0:-1,:,:]+Fa_N_top[1:,:,:])
     
     
     return Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down
@@ -449,10 +449,10 @@ def getFa_Vert(Fa_E_top,Fa_E_down,Fa_N_top,Fa_N_down,E,P,W_top,W_down,divt,count
     Fa_E_down_neg = Fa_E_down_pos - 1
 
     # separate directions west-east (all positive numbers)
-    Fa_E_top_WE = Fa_E_top_boundary * Fa_E_top_pos;
-    Fa_E_top_EW = Fa_E_top_boundary * Fa_E_top_neg;
-    Fa_E_down_WE = Fa_E_down_boundary * Fa_E_down_pos;
-    Fa_E_down_EW = Fa_E_down_boundary * Fa_E_down_neg;
+    Fa_E_top_WE = Fa_E_top_boundary * Fa_E_top_pos
+    Fa_E_top_EW = Fa_E_top_boundary * Fa_E_top_neg
+    Fa_E_down_WE = Fa_E_down_boundary * Fa_E_down_pos
+    Fa_E_down_EW = Fa_E_down_boundary * Fa_E_down_neg
 
     # fluxes over the western boundary
     Fa_W_top_WE = np.nan*np.zeros(np.shape(P))
@@ -469,9 +469,9 @@ def getFa_Vert(Fa_E_top,Fa_E_down,Fa_N_top,Fa_N_down,E,P,W_top,W_down,divt,count
     Fa_W_down_EW[:,:,0] = Fa_E_down_EW[:,:,-1]    
 
     # fluxes over the northern boundary
-    Fa_N_top_boundary = np.nan*np.zeros(np.shape(Fa_N_top));
+    Fa_N_top_boundary = np.nan*np.zeros(np.shape(Fa_N_top))
     Fa_N_top_boundary[:,1:,:] = 0.5 * ( Fa_N_top[:,:-1,:] + Fa_N_top[:,1:,:] )
-    Fa_N_down_boundary = np.nan*np.zeros(np.shape(Fa_N_down));
+    Fa_N_down_boundary = np.nan*np.zeros(np.shape(Fa_N_down))
     Fa_N_down_boundary[:,1:,:] = 0.5 * ( Fa_N_down[:,:-1,:] + Fa_N_down[:,1:,:] )
 
     # find out where the positive and negative fluxes are
@@ -544,7 +544,7 @@ def getFa_Vert(Fa_E_top,Fa_E_down,Fa_N_top,Fa_N_down,E,P,W_top,W_down,divt,count
                                         stab*np.reshape(W_down[1:,:,:], (np.size(W_down[1:,:,:]))))),(np.int(count_time*np.float(divt)),len(latitude),len(longitude)))
                 
     # redefine the vertical flux
-    Fa_Vert = Fa_Vert_stable * Fa_Vert_posneg;
+    Fa_Vert = Fa_Vert_stable * Fa_Vert_posneg
 
     return Fa_Vert_raw, Fa_Vert
 
