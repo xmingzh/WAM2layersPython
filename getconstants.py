@@ -11,14 +11,17 @@ from math import radians, cos, sin, acos, sqrt
 #%%
 # Function to estimate the distance of two points, unit: m
 def great_circle(lon1, lat1, lon2, lat2):
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    # lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    lon1=radians(lon1)
+    lat1=radians(lat1)
+    lon2=radians(lon2)
+    lat2=radians(lat2)
     Erad = 6.371e6 # [m] Earth radius
     return Erad * (
         acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon1 - lon2))
     )
 
 def getconstants(latnrs,lonnrs,invariant_data): # def getconstants in Python is the same as function in MATLAB. 
-    
     # load the latitude and longitude from the invariants file
     latitude = Dataset(invariant_data, mode = 'r').variables['latitude'][latnrs] # [degrees north]
     longitude = Dataset(invariant_data, mode = 'r').variables['longitude'][lonnrs] # [degrees east]
@@ -40,6 +43,8 @@ def getconstants(latnrs,lonnrs,invariant_data): # def getconstants in Python is 
 
     # Area size calculation 
     A_gridcell = np.vstack(np.zeros((len(latitude))))
+    L_N_gridcell=np.vstack(np.zeros((len(latitude)))) # [m] length northern boundary of a cell
+    L_S_gridcell=np.vstack(np.zeros((len(latitude)))) # [m] length southern boundary of a cell
     lon_w=1
     lon_e=lon_w+gridcell
     l_ew=gridcell * dg
@@ -48,29 +53,31 @@ def getconstants(latnrs,lonnrs,invariant_data): # def getconstants in Python is 
            lat_n=latitude[i]+gridcell / 2.0
            lat_s=latitude[i]-gridcell / 2.0
            l_n=great_circle(lon_w, lat_n, lon_e, lat_n) # [m] length northern boundary of a cell
-           l_s=great_circle(lon_w, lat_s, lon_w, lat_s) # [m] length southern boundary of a cell
+           l_s=great_circle(lon_w, lat_s, lon_e, lat_s) # [m] length southern boundary of a cell
            l_diagonal=great_circle(lon_w, lat_s, lon_e, lat_n)
            # estimate the area of the gridcell as two triangles, and the area of 
            # triangle is estimated based on Heron's formula   
            p1=0.5*(l_n+l_ew+l_diagonal)
            p2=0.5*(l_s+l_ew+l_diagonal)
            # [m2] area size of grid cell
-           A_gridcell[i] = sqrt(p1*(p1-l_n)*(p1-l_ew)*(p1-l_diagonal))+sqrt(p2*(p2-l_s)*(p2-l_ew)*(p2-l_diagonal))            
+           A_gridcell[i] = sqrt(p1*(p1-l_n)*(p1-l_ew)*(p1-l_diagonal))+sqrt(p2*(p2-l_s)*(p2-l_ew)*(p2-l_diagonal))  
+           L_N_gridcell[i]=l_n
+           L_S_gridcell[i]=l_s          
        elif latitude[i] == 90:
            lat_s=latitude[i]-gridcell / 2.0
-           l_s=great_circle(lon_w, lat_s, lon_w, lat_s)
+           l_s=great_circle(lon_w, lat_s, lon_e, lat_s)
            p1=0.5*(l_s+2*l_ew)
            A_gridcell[i] = sqrt(p1*(p1-l_s)*(p1-l_ew)*(p1-l_ew))
+           L_N_gridcell[i]=0
+           L_S_gridcell[i]=l_s
        elif latitude[i] == -90:
            lat_n=latitude[i]+gridcell / 2.0
-           l_n=great_circle(lon_w, lat_n, lon_w, lat_n)
+           l_n=great_circle(lon_w, lat_n, lon_e, lat_n)
            p1=0.5*(l_n+2*l_ew)
            A_gridcell[i] = sqrt(p1*(p1-l_n)*(p1-l_ew)*(p1-l_ew))
+           L_N_gridcell[i]=l_n
+           L_S_gridcell[i]=0
     
-    lat_ns=latitude + gridcell / 2.0
-    lat_ss=latitude - gridcell / 2.0
-    L_N_gridcell = great_circle(lon_w,lat_ns, lon_e, lat_ns) # [m] length northern boundary of a cell
-    L_S_gridcell = great_circle(lon_w,lat_ss, lon_e, lat_ss) # [m] length southern boundary of a cell
     L_EW_gridcell = gridcell * dg # [m] length eastern/western boundary of a cell 
         
     return latitude , longitude , lsm , g , density_water , timestep , A_gridcell , L_N_gridcell , L_S_gridcell , L_EW_gridcell , gridcell

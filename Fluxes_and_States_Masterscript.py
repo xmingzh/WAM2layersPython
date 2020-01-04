@@ -14,72 +14,6 @@ from getconstants import getconstants
 from timeit import default_timer as timer
 import os
 
-#%%BEGIN OF INPUT (FILL THIS IN)
-years = np.arange(1979,1979) #fill in the years
-yearpart = np.arange(0,364) # for a full (leap)year fill in np.arange(0,366)
-boundary = 8 # with 8 the vertical separation is at 812.83 hPa for surface pressure = 1031.25 hPa, which corresponds to k=47 (ERA-Interim)
-divt = 24 # division of the timestep, 24 means a calculation timestep of 6/24 = 0.25 hours (numerical stability purposes)
-count_time = 4 # number of indices to get data from (for six hourly data this means everytime one day)
-
-# Manage the extent of your dataset (FILL THIS IN)
-# Define the latitude and longitude cell numbers to consider and corresponding lakes that should be considered part of the land
-latnrs = np.arange(7,114)
-lonnrs = np.arange(0,240)
-isglobal = 1 # fill in 1 for global computations (i.e. Earth round), fill in 0 for a local domain with boundaries
-
-# the lake numbers below belong to the ERA-Interim data on 1.5 degree starting at Northern latitude 79.5 and longitude 0
-lake_mask_1 = np.array([9,9,9,12,12,21,21,22,22,23,24,25,23,23,25,25,53,54,61,23,24,23,24,25,27,22,23,24,25,26,27,28,22,25,26,27,28,23,23,12,18])
-lake_mask_2 = np.array([120+19,120+40,120+41,120+43,120+44,120+61,120+62,120+62,120+63,120+62,120+62,120+62,120+65,120+66,120+65,120+66,142-120,142-120,143-120,152-120,152-120,153-120,153-120,153-120,153-120,154-120,154-120,154-120,154-120,154-120,154-120,154-120,155-120,155-120,155-120,155-120,155-120,159-120,160-120,144-120,120+55])
-lake_mask = np.transpose(np.vstack((lake_mask_1,lake_mask_2))) #recreate the arrays of the matlab model
-
-#END OF INPUT
-
-#%% Datapaths (FILL THIS IN)
-invariant_data = 'D:\Github\WAM2layersPython\Download_ERA5\landseamask.nc' #invariants
-interdata_folder = r'C:\Users\bec\Desktop\WAM2\interdata'
-input_folder = r'C:\Users\bec\Desktop\WAM2'
-
-# other scripts use exactly this sequence, do not change it unless you change it also in the scripts
-def data_path(yearnumber,a):   
-    sp_data = os.path.join(input_folder, str(yearnumber) + '-sp.nc') #surface pressure
-    sp_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-sp.nc') #surface pressure end of the year
-    
-    q_f_data = os.path.join(input_folder, str(yearnumber) + '-q_mod.nc') #specific humidity 
-    q_f_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-q_mod.nc')#specific humidity end of the year
-
-    tcw_data = os.path.join(input_folder, str(yearnumber) + '-tcw.nc') #total column water 
-    tcw_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-tcw.nc') #total column water end of the year
-
-    u_f_data = os.path.join(input_folder, str(yearnumber) + '-u_mod.nc' )
-    u_f_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-u_mod.nc' )
-
-    v_f_data = os.path.join(input_folder, str(yearnumber) + '-v_mod.nc' )
-    v_f_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-v_mod.nc' )
-
-    ewvf_data = os.path.join(input_folder, str(yearnumber) + '-ewvf.nc')
-    ewvf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-ewvf.nc')
-
-    nwvf_data = os.path.join(input_folder, str(yearnumber) + '-nwvf.nc')
-    nwvf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-nwvf.nc')
-
-    eclwf_data = os.path.join(input_folder, str(yearnumber) + '-eclwf.nc')
-    eclwf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-eclwf.nc')
-
-    nclwf_data = os.path.join(input_folder, str(yearnumber) + '-nclwf.nc')
-    nclwf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-nclwf.nc')
-
-    ecfwf_data = os.path.join(input_folder, str(yearnumber) + '-ecfwf.nc')
-    ecfwf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-ecfwf.nc')
-
-    ncfwf_data = os.path.join(input_folder, str(yearnumber) + '-ncfwf.nc')
-    ncfwf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-ncfwf.nc')
-
-    evaporation_precipitation_data = os.path.join(input_folder, str(yearnumber) + '-E-P.nc')
-    
-    save_path = os.path.join(interdata_folder, str(yearnumber) + '-' + str(a) + 'fluxes_storages.mat')
-    
-    return sp_data,sp_eoy_data,q_f_data,q_f_eoy_data,tcw_data,tcw_eoy_data,u_f_data,u_f_eoy_data,v_f_data,v_f_eoy_data,ewvf_data,ewvf_eoy_data,nwvf_data,nwvf_eoy_data,eclwf_data,eclwf_eoy_data,nclwf_data,nclwf_eoy_data,ecfwf_data,ecfwf_eoy_data,ncfwf_data,ncfwf_eoy_data,evaporation_precipitation_data,save_path
-
 #%% Code (no need to look at this for running)
 
 # The model level as downloaded from ERA-Interim are hard-defined within this code. So it has to be changed if other model levels are downloaded
@@ -297,7 +231,7 @@ def getrefined(Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,W_top,W_down,E,P,divt,count
     partvector2 = np.zeros((1,np.int(count_time*2*divt2)))
     da = np.arange(1,divt2)  
     
-    for o in np.arange(0,np.int(count_time*2*divt2),12):
+    for o in np.arange(0,np.int(count_time*2*divt2),np.int(divt2)):
         for i in range(len(da)):
             oddvector2[0,o+i]    = (divt2-da[i])/divt2
             partvector2[0,o+i+1] = da[i]/divt2
@@ -305,7 +239,7 @@ def getrefined(Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,W_top,W_down,E,P,divt,count
     E_small = np.nan*np.zeros((np.int(count_time*2*divt2),len(latitude),len(longitude)))
     for t in range(1,np.int(count_time*2*divt2)+1):
         E_small[t-1] = (1./divt2) * E[np.int(t/divt2+oddvector2[0,t-1]-1)]
-    E = E_small            
+    E = E_small          
 
     P_small = np.nan*np.zeros((np.int(count_time*2*divt2),len(latitude),len(longitude)))
     for t in range(1,np.int(count_time*2*divt2)+1):
@@ -349,7 +283,7 @@ def getrefined(Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,W_top,W_down,E,P,divt,count
     Fa_E_top = Fa_E_top_small
     Fa_N_top = Fa_N_top_small
     
-    return Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,E,P,W_top,W_down
+    return Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,E,P,W_top,W_down,DelE
 
 
 #%% Code
@@ -547,16 +481,78 @@ def getFa_Vert(Fa_E_top,Fa_E_down,Fa_N_top,Fa_N_down,E,P,W_top,W_down,divt,count
     Fa_Vert = Fa_Vert_stable * Fa_Vert_posneg
 
     return Fa_Vert_raw, Fa_Vert
+#%%
+def data_path(yearnumber,a):   
+    sp_data = os.path.join(input_folder, str(yearnumber) + '-sp.nc') #surface pressure
+    sp_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-sp.nc') #surface pressure end of the year
+    
+    q_f_data = os.path.join(input_folder, str(yearnumber) + '-UVQ-level.nc') #specific humidity 
+    q_f_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-UVQ-level.nc')#specific humidity end of the year
 
+    tcw_data = os.path.join(input_folder, str(yearnumber) + '-Vintvar.nc') #total column water 
+    tcw_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-tcw.nc') #total column water end of the year
+
+    u_f_data = os.path.join(input_folder, str(yearnumber) + '-UVQ-level.nc' )
+    u_f_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-u_mod.nc' )
+
+    v_f_data = os.path.join(input_folder, str(yearnumber) + '-UVQ-level.nc' )
+    v_f_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-v_mod.nc' )
+
+    ewvf_data = os.path.join(input_folder, str(yearnumber) + '-Vintvar.nc')
+    ewvf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-ewvf.nc')
+
+    nwvf_data = os.path.join(input_folder, str(yearnumber) + '-Vintvar.nc')
+    nwvf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-nwvf.nc')
+
+    eclwf_data = os.path.join(input_folder, str(yearnumber) + '-Vintvar.nc')
+    eclwf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-eclwf.nc')
+
+    nclwf_data = os.path.join(input_folder, str(yearnumber) + '-Vintvar.nc')
+    nclwf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-nclwf.nc')
+
+    ecfwf_data = os.path.join(input_folder, str(yearnumber) + '-Vintvar.nc')
+    ecfwf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-ecfwf.nc')
+
+    ncfwf_data = os.path.join(input_folder, str(yearnumber) + '-Vintvar.nc')
+    ncfwf_eoy_data = os.path.join(input_folder, str(yearnumber+1) + '-ncfwf.nc')
+
+    evaporation_precipitation_data = os.path.join(input_folder, str(yearnumber) + '-E-P.nc')
+    
+    save_path = os.path.join(interdata_folder, str(yearnumber) + '-' + str(a) + 'fluxes_storages.mat')
+    
+    return sp_data,sp_eoy_data,q_f_data,q_f_eoy_data,tcw_data,tcw_eoy_data,u_f_data,u_f_eoy_data,v_f_data,v_f_eoy_data,ewvf_data,ewvf_eoy_data,nwvf_data,nwvf_eoy_data,eclwf_data,eclwf_eoy_data,nclwf_data,nclwf_eoy_data,ecfwf_data,ecfwf_eoy_data,ncfwf_data,ncfwf_eoy_data,evaporation_precipitation_data,save_path
 # #### End of code
+#
+# Main script Runtime & Results
+#
+#%%BEGIN OF INPUT (FILL THIS IN)
+years = np.arange(1979,1980) #fill in the years
+yearpart = np.arange(0,2) # for a full (leap)year fill in np.arange(0,366)
+boundary = 8 # with 8 the vertical separation is at 812.83 hPa for surface pressure = 1031.25 hPa, which corresponds to k=47 (ERA-Interim)
+divt = 24 # division of the timestep, 24 means a calculation timestep of 6/24 = 0.25 hours (numerical stability purposes)
+count_time = 4 # number of indices to get data from (for six hourly data this means everytime one day)
 
-#%% Runtime & Results
+# Manage the extent of your dataset (FILL THIS IN)
+# Define the latitude and longitude cell numbers to consider and corresponding lakes that should be considered part of the land
+latnrs = np.arange(7,114)
+lonnrs = np.arange(0,240)
+isglobal = 1 # fill in 1 for global computations (i.e. Earth round), fill in 0 for a local domain with boundaries
+
+#END OF INPUT
+
+#%% Datapaths (FILL THIS IN)
+invariant_data = 'D:\Github\WAM2layersPython\Download_ERA5\landseamask.nc' #invariants
+interdata_folder = r'D:\Github\WAM2layersPython\interdata'
+input_folder = r'D:\Github\WAM2layersPython\Download_ERA5'
+
+# other scripts use exactly this sequence, do not change it unless you change it also in the scripts
+
 
 start1 = timer()
 
 # obtain the constants
-latitude,longitude,lsm,g,density_water,timestep,A_gridcell,L_N_gridcell,L_S_gridcell,L_EW_gridcell,gridcell = getconstants(latnrs,lonnrs,lake_mask,invariant_data)
-
+latitude,longitude,lsm,g,density_water,timestep,A_gridcell,L_N_gridcell,L_S_gridcell,L_EW_gridcell,gridcell = getconstants(latnrs,lonnrs,invariant_data)
+#%%
 # loop through the years
 for yearnumber in years:
 
@@ -586,7 +582,7 @@ for yearnumber in years:
             E,P = getEP(latnrs,lonnrs,begin_time,count_time,latitude,longitude,A_gridcell)
             
             #5 put data on a smaller time step
-            Fa_E_top_1,Fa_N_top_1,Fa_E_down_1,Fa_N_down_1,E,P,W_top,W_down = getrefined(Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,W_top,W_down,E,P,divt,count_time,latitude,longitude)
+            Fa_E_top_1,Fa_N_top_1,Fa_E_down_1,Fa_N_down_1,E,P,W_top,W_down,DelE = getrefined(Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,W_top,W_down,E,P,divt,count_time,latitude,longitude)
 
             #6 stabilize horizontal fluxes and get everything in (m3 per smaller timestep)
             Fa_E_top,Fa_E_down,Fa_N_top,Fa_N_down = get_stablefluxes(W_top,W_down,Fa_E_top_1,Fa_E_down_1,Fa_N_top_1,Fa_N_down_1,
@@ -595,13 +591,17 @@ for yearnumber in years:
             #7 determine the vertical moisture flux
             Fa_Vert_raw,Fa_Vert = getFa_Vert(Fa_E_top,Fa_E_down,Fa_N_top,Fa_N_down,E,P,W_top,W_down,divt,count_time,latitude,longitude)
             
-            sio.savemat(datapath[23], {'Fa_E_top':Fa_E_top, 'Fa_N_top':Fa_N_top, 'Fa_E_down':Fa_E_down,'Fa_N_down':Fa_N_down, 'Fa_Vert':Fa_Vert, 'E':E, 'P':P, 
-                                                                                    'W_top':W_top, 'W_down':W_down}, do_compression=True)
+            # sio.savemat(datapath[23], {'Fa_E_top':Fa_E_top, 'Fa_N_top':Fa_N_top, 'Fa_E_down':Fa_E_down,'Fa_N_down':Fa_N_down, 'Fa_Vert':Fa_Vert, 'E':E, 'P':P, 
+                                                                                    # 'W_top':W_top, 'W_down':W_down}, do_compression=True)
             
             # alternative, but slower and more spacious
             # np.savez_compressed(datapath[23],Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,Fa_Vert,E,P,W_top,W_down)
             
         end = timer()
-        print 'Runtime fluxes_and_storages for day ' + str(a+1) + ' in year ' + str(yearnumber) + ' is',(end - start),' seconds.'
+        # print 'Runtime fluxes_and_storages for day ' + str(a+1) + ' in year ' + str(yearnumber) + ' is',(end - start),' seconds.'
 end1 = timer()
-print 'The total runtime is',(end1-start1),' seconds.'
+# print 'The total runtime is',(end1-start1),' seconds.'
+
+
+
+# %%
