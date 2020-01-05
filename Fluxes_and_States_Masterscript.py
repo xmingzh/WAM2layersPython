@@ -227,63 +227,44 @@ def getrefined(Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,W_top,W_down,E,P,divt,count
     
     #for 3 hourly information
     divt2 = divt/2.
-    oddvector2 = np.zeros((1,np.int(count_time*2*divt2)))
-    partvector2 = np.zeros((1,np.int(count_time*2*divt2)))
-    da = np.arange(1,divt2)  
-    
-    for o in np.arange(0,np.int(count_time*2*divt2),np.int(divt2)):
-        for i in range(len(da)):
-            oddvector2[0,o+i]    = (divt2-da[i])/divt2
-            partvector2[0,o+i+1] = da[i]/divt2
-
     E_small = np.nan*np.zeros((np.int(count_time*2*divt2),len(latitude),len(longitude)))
-    for t in range(1,np.int(count_time*2*divt2)+1):
-        E_small[t-1] = (1./divt2) * E[np.int(t/divt2+oddvector2[0,t-1]-1)]
+    for t in range(0,np.int(count_time*2*divt2)):
+        E_small[t] = (1./divt2) * E[np.int(t/divt2)]
     E = E_small          
 
     P_small = np.nan*np.zeros((np.int(count_time*2*divt2),len(latitude),len(longitude)))
-    for t in range(1,np.int(count_time*2*divt2)+1):
-        P_small[t-1] = (1./divt2) * P[np.int(t/divt2+oddvector2[0,t-1]-1)]
+    for t in range(0,np.int(count_time*2*divt2)):
+        P_small[t] = (1./divt2) * P[np.int(t/divt2)]
     P = P_small
     
-    # for 6 hourly info
-    oddvector = np.zeros((1,np.int(count_time*divt)))
-    partvector = np.zeros((1,np.int(count_time*divt)))
-    da = np.arange(1,divt) 
-    divt = np.float(divt)
-    for o in np.arange(0,np.int(count_time*divt),np.int(divt)):
-        for i in range(len(da)):
-            oddvector[0,o+i]    = (divt-da[i])/divt
-            partvector[0,o+i+1] = da[i]/divt    
-        
+    # for 6 hourly info   
     W_top_small = np.nan*np.zeros((np.int(count_time*divt+1),len(latitude),len(longitude)))
-    for t in range(1,np.int(count_time*divt)+1):
-        W_top_small[t-1] = W_top[np.int(t/divt+oddvector[0,t-1]-1)] + partvector[0,t-1] * (W_top[np.int(t/divt+oddvector[0,t-1])] - W_top[np.int(t/divt+oddvector[0,t-1]-1)])
-        W_top_small[-1] = W_top[-1]
+    # not finished
+    for t in range(0,np.int(count_time*divt)):
+        W_top_small[t] = W_top[np.int(t/divt)]+ (t%divt-(divt-1)*0.5)/divt*(W_top[np.int(t/divt)+1]-W_top[np.int(t/divt)])        
     W_top = W_top_small
 
     W_down_small = np.nan*np.zeros((np.int(count_time*divt+1),len(latitude),len(longitude)))
-    for t in range(1,np.int(count_time*divt)+1):
-        W_down_small[t-1] = W_down[np.int(t/divt+oddvector[0,t-1]-1)] + partvector[0,t-1] * (W_down[np.int(t/divt+oddvector[0,t-1])] - W_down[np.int(t/divt+oddvector[0,t-1]-1)])
-        W_down_small[-1] = W_down[-1]
+    for t in range(0,np.int(count_time*divt)):
+        W_down_small[t] = W_down[np.int(t/divt)] + (t%divt-(divt-1)*0.5)/divt * (W_down[np.int(t/divt)+1] - W_down[np.int(t/divt)])                   
     W_down = W_down_small
 
     Fa_E_down_small = np.nan*np.zeros((np.int(count_time*divt),len(latitude),len(longitude)))
     Fa_N_down_small = np.nan*np.zeros((np.int(count_time*divt),len(latitude),len(longitude)))
     Fa_E_top_small = np.nan*np.zeros((np.int(count_time*divt),len(latitude),len(longitude)))
     Fa_N_top_small = np.nan*np.zeros((np.int(count_time*divt),len(latitude),len(longitude)))
-    for t in range(1,np.int(count_time*divt)+1):
-        Fa_E_down_small[t-1] = Fa_E_down[np.int(t/divt+oddvector[0,t-1]-1)]
-        Fa_N_down_small[t-1] = Fa_N_down[np.int(t/divt+oddvector[0,t-1]-1)]
-        Fa_E_top_small[t-1] = Fa_E_top[np.int(t/divt+oddvector[0,t-1]-1)]
-        Fa_N_top_small[t-1] = Fa_N_top[np.int(t/divt+oddvector[0,t-1]-1)]
+    for t in range(0,np.int(count_time*divt)):
+        Fa_E_down_small[t] = Fa_E_down[np.int(t/divt)]
+        Fa_N_down_small[t] = Fa_N_down[np.int(t/divt)]
+        Fa_E_top_small[t] = Fa_E_top[np.int(t/divt)]
+        Fa_N_top_small[t] = Fa_N_top[np.int(t/divt)]
 
     Fa_E_down = Fa_E_down_small
     Fa_N_down = Fa_N_down_small
     Fa_E_top = Fa_E_top_small
     Fa_N_top = Fa_N_top_small
     
-    return Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,E,P,W_top,W_down,DelE
+    return Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,E,P,W_top,W_down
 
 
 #%% Code
@@ -582,7 +563,7 @@ for yearnumber in years:
             E,P = getEP(latnrs,lonnrs,begin_time,count_time,latitude,longitude,A_gridcell)
             
             #5 put data on a smaller time step
-            Fa_E_top_1,Fa_N_top_1,Fa_E_down_1,Fa_N_down_1,E,P,W_top,W_down,DelE = getrefined(Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,W_top,W_down,E,P,divt,count_time,latitude,longitude)
+            Fa_E_top_1,Fa_N_top_1,Fa_E_down_1,Fa_N_down_1,E,P,W_top,W_down = getrefined(Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,W_top,W_down,E,P,divt,count_time,latitude,longitude)
 
             #6 stabilize horizontal fluxes and get everything in (m3 per smaller timestep)
             Fa_E_top,Fa_E_down,Fa_N_top,Fa_N_down = get_stablefluxes(W_top,W_down,Fa_E_top_1,Fa_E_down_1,Fa_N_top_1,Fa_N_down_1,
