@@ -242,11 +242,13 @@ def getrefined(Fa_E_top,Fa_N_top,Fa_E_down,Fa_N_down,W_top,W_down,E,P,divt,count
     # not finished
     for t in range(0,np.int(count_time*divt)):
         W_top_small[t] = W_top[np.int(t/divt)]+ (t%divt-(divt-1)*0.5)/divt*(W_top[np.int(t/divt)+1]-W_top[np.int(t/divt)])        
+    W_top_small[-1]=W_top[-1]
     W_top = W_top_small
 
     W_down_small = np.nan*np.zeros((np.int(count_time*divt+1),len(latitude),len(longitude)))
     for t in range(0,np.int(count_time*divt)):
         W_down_small[t] = W_down[np.int(t/divt)] + (t%divt-(divt-1)*0.5)/divt * (W_down[np.int(t/divt)+1] - W_down[np.int(t/divt)])                   
+    W_down_small[-1]= W_down[-1]
     W_down = W_down_small
 
     Fa_E_down_small = np.nan*np.zeros((np.int(count_time*divt),len(latitude),len(longitude)))
@@ -311,25 +313,29 @@ def get_stablefluxes(W_top,W_down,Fa_E_top_1,Fa_E_down_1,Fa_N_top_1,Fa_N_down_1,
     # stabilize the outfluxes / influxes
     stab = 1./2.  # during the reduced timestep the water cannot move further than 1/x * the gridcell, 
                     #in other words at least x * the reduced timestep is needed to cross a gridcell
-    Fa_E_top_stable = np.reshape(np.minimum(np.reshape(Fa_E_top_abs, (np.size(Fa_E_top_abs))), (np.reshape(Fa_E_top_abs, (np.size(Fa_E_top_abs)))  / 
-                                    (np.reshape(Fa_E_top_abs, (np.size(Fa_E_top_abs)))  + np.reshape(Fa_N_top_abs, (np.size(Fa_N_top_abs))))) * stab 
-                                            * np.reshape(W_top[:-1,:,:], (np.size(W_top[:-1,:,:])))),(np.int(count_time*np.float(divt)),len(latitude),len(longitude)))
-    Fa_N_top_stable = np.reshape(np.minimum(np.reshape(Fa_N_top_abs, (np.size(Fa_N_top_abs))), (np.reshape(Fa_N_top_abs, (np.size(Fa_N_top_abs)))  / 
-                                    (np.reshape(Fa_E_top_abs, (np.size(Fa_E_top_abs)))  + np.reshape(Fa_N_top_abs, (np.size(Fa_N_top_abs))))) * stab 
-                                            * np.reshape(W_top[:-1,:,:], (np.size(W_top[:-1,:,:])))),(np.int(count_time*np.float(divt)),len(latitude),len(longitude)))
-    Fa_E_down_stable = np.reshape(np.minimum(np.reshape(Fa_E_down_abs, (np.size(Fa_E_down_abs))), (np.reshape(Fa_E_down_abs, (np.size(Fa_E_down_abs)))  / 
-                                    (np.reshape(Fa_E_down_abs, (np.size(Fa_E_down_abs)))  + np.reshape(Fa_N_down_abs, (np.size(Fa_N_down_abs))))) * stab 
-                                             * np.reshape(W_down[:-1,:,:], (np.size(W_down[:-1,:,:])))),(np.int(count_time*np.float(divt)),len(latitude),len(longitude)))
-    Fa_N_down_stable = np.reshape(np.minimum(np.reshape(Fa_N_down_abs, (np.size(Fa_N_down_abs))), (np.reshape(Fa_N_down_abs, (np.size(Fa_N_down_abs)))  / 
-                                    (np.reshape(Fa_E_down_abs, (np.size(Fa_E_down_abs)))  + np.reshape(Fa_N_down_abs, (np.size(Fa_N_down_abs))))) * stab 
-                                             * np.reshape(W_down[:-1,:,:], (np.size(W_down[:-1,:,:])))),(np.int(count_time*np.float(divt)),len(latitude),len(longitude)))
+    size=np.size(Fa_E_top_abs)
+    Fa_E_top_stable = np.reshape(np.minimum(np.reshape(Fa_E_top_abs, size), (np.reshape(Fa_E_top_abs, size)  / 
+                                    (np.reshape(Fa_E_top_abs, size)  + np.reshape(Fa_N_top_abs, size))) * stab 
+                                            * np.reshape(W_top[:-1,:,:], size)),np.shape(Fa_E_top_abs))
+    
+    Fa_N_top_stable = np.reshape(np.minimum(np.reshape(Fa_N_top_abs, size), (np.reshape(Fa_N_top_abs, size)  / 
+                                    (np.reshape(Fa_E_top_abs, size)  + np.reshape(Fa_N_top_abs, size))) * stab 
+                                            * np.reshape(W_top[:-1,:,:], size)),np.shape(Fa_N_top_abs))
+
+    Fa_E_down_stable = np.reshape(np.minimum(np.reshape(Fa_E_down_abs, (size)), (np.reshape(Fa_E_down_abs, size)  / 
+                                    (np.reshape(Fa_E_down_abs, size)  + np.reshape(Fa_N_down_abs, size))) * stab 
+                                             * np.reshape(W_down[:-1,:,:], size)),np.shape(Fa_E_down_abs))
+
+    Fa_N_down_stable = np.reshape(np.minimum(np.reshape(Fa_N_down_abs, size), (np.reshape(Fa_N_down_abs, size)  / 
+                                    (np.reshape(Fa_E_down_abs, size)  + np.reshape(Fa_N_down_abs, size))) * stab 
+                                             * np.reshape(W_down[:-1,:,:], size)),np.shape(Fa_N_down_abs))
     
     #get rid of the nan values
     Fa_E_top_stable[np.isnan(Fa_E_top_stable)] = 0
     Fa_N_top_stable[np.isnan(Fa_N_top_stable)] = 0
     Fa_E_down_stable[np.isnan(Fa_E_down_stable)] = 0
     Fa_N_down_stable[np.isnan(Fa_N_down_stable)] = 0
-    
+
     #redefine
     Fa_E_top = Fa_E_top_stable * Fa_E_top_posneg
     Fa_N_top = Fa_N_top_stable * Fa_N_top_posneg
@@ -454,9 +460,9 @@ def getFa_Vert(Fa_E_top,Fa_E_down,Fa_N_top,Fa_N_down,E,P,W_top,W_down,divt,count
 
     # stabilize the outfluxes / influxes
     stab = 1./4. #during the reduced timestep the vertical flux can maximally empty/fill 1/x of the top or down storage
-    
-    Fa_Vert_stable = np.reshape(np.minimum(np.reshape(Fa_Vert_abs, (np.size(Fa_Vert_abs))), np.minimum(stab*np.reshape(W_top[1:,:,:], (np.size(W_top[1:,:,:]))), 
-                                        stab*np.reshape(W_down[1:,:,:], (np.size(W_down[1:,:,:]))))),(np.int(count_time*np.float(divt)),len(latitude),len(longitude)))
+    size=np.size(Fa_Vert_abs)
+    Fa_Vert_stable = np.reshape(np.minimum(np.reshape(Fa_Vert_abs, size), np.minimum(stab*np.reshape(W_top[1:,:,:], size), 
+                                        stab*np.reshape(W_down[1:,:,:], size))), np.shape(Fa_Vert_abs))
                 
     # redefine the vertical flux
     Fa_Vert = Fa_Vert_stable * Fa_Vert_posneg
